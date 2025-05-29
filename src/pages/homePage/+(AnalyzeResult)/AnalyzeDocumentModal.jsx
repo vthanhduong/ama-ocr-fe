@@ -37,7 +37,6 @@ export default function AnalyzeDocumentModal({ visible, onCancel, openSuccessNot
     }
     const onFinish = (values) => {
         setIsAnalyzing(true);
-        console.log(values);
         const formData = new FormData()
         formData.append("document", fileList[0]);
         arApi.postAnalyzeResults(values.model, formData)
@@ -53,13 +52,14 @@ export default function AnalyzeDocumentModal({ visible, onCancel, openSuccessNot
             setFileList([]);
             setFileName("");
             setSubmittable(false);
-            onCancel();
+            currentOnCancel();
         })
     }
-    const currentOnCancle = () => {
+    const currentOnCancel = () => {
         setFileList([]);
         setFileName("");
         setSubmittable(false);
+        form.resetFields(['model', 'file']);
         onCancel();
     }
     return (
@@ -80,7 +80,7 @@ export default function AnalyzeDocumentModal({ visible, onCancel, openSuccessNot
                 xxl: '70%',
             }}
             >
-                <Form form={form} name="form" layout="vertical" autoComplete="off" onFinish={onFinish} initialValues={{model: "ama/local-extractor"}}  disabled={isAnalyzing}> 
+                <Form form={form} name="form" layout="vertical" autoComplete="off" onFinish={onFinish} disabled={isAnalyzing}> 
                     <Form.Item name="model" label="Model" rules={[{ required: true, message: 'Please choose a model' }]}>
                         <Select
                             name="model"
@@ -105,10 +105,10 @@ export default function AnalyzeDocumentModal({ visible, onCancel, openSuccessNot
                         </div>
                     </Form.Item>
                     <div className="flex gap-x-2 justify-end">
-                        <SubmitButton form={form} submittable={submittable} setSubmittable={setSubmittable} isAnalyzing={isAnalyzing}>
+                        <SubmitButton form={form} submittable={submittable} setSubmittable={setSubmittable} isAnalyzing={isAnalyzing} fileName={fileName}>
                             Analyze
                         </SubmitButton>
-                        <Button type="default" onClick={currentOnCancle} disabled={isAnalyzing}>
+                        <Button type="default" onClick={currentOnCancel} disabled={isAnalyzing}>
                             Cancel
                         </Button>
                     </div>
@@ -121,7 +121,7 @@ const SubmitButton = ({ form, children, submittable, setSubmittable, isAnalyzing
     useEffect(() => {
       form
         .validateFields({ validateOnly: true })
-        .then(() => setSubmittable(true))
+        .then(() => {if (values.file && values.model) setSubmittable(true)})
         .catch(() => setSubmittable(false));
     }, [form, values]);
     return (
